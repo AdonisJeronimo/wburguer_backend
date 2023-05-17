@@ -2,6 +2,10 @@ import { PrismaClient } from "@prisma/client"
 import dotenv from "dotenv"
 import express, { Express, Request, Response } from "express"
 
+import { CustomerData } from "./interfaces/CustomerData"
+import { PaymentData } from "./interfaces/PaymentData"
+import { SnackData } from "./interfaces/SnackData"
+
 dotenv.config()
 
 const app: Express = express()
@@ -33,6 +37,32 @@ app.get("/snacks", async (req: Request, res: Response) => {
   })
 
   res.send(snacks)
+})
+
+app.get("/orders/:id", async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  const order = await prisma.order.findUnique({
+    where: {
+      id: +id,
+    },
+  })
+
+  if (!order) return res.status(404).send({ error: "Order not found" })
+
+  res.send(order)
+})
+
+interface CheckoutRequest extends Request {
+  body: {
+    cart: SnackData[]
+    customer: CustomerData
+    payment: PaymentData
+  }
+}
+
+app.post("/checkout", async (req: CheckoutRequest, res: Response) => {
+  const { cart, customer, payment } = req.body
 })
 
 app.listen(port, () => {
